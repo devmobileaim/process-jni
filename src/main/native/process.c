@@ -9,6 +9,8 @@
 #include <grp.h>
 #include <pwd.h>
 #include <jni.h>
+#include <security/pam_appl.h>
+#include <security/pam_misc.h>
 
 extern char **environ;
 
@@ -80,6 +82,63 @@ JNIEXPORT jint JNICALL Java_com_github_luben_process_Process_execv
     execv(path, args);
     return 0;
 }
+
+struct pam_response *reply;  
+
+// //function used to get user input  
+int function_conversation(int num_msg, const struct pam_message **msg, struct pam_response **resp, void *appdata_ptr)  
+{  
+    *resp = reply;  
+        return PAM_SUCCESS;  
+}  
+
+JNIEXPORT jboolean JNICALL Java_com_github_luben_process_Process_login
+  (JNIEnv *jenv, jclass klass, jstring jlogin, jstring jpassword) {
+    const char *login  = (*jenv)->GetStringUTFChars(jenv, jlogin, NULL);
+    const char *password  = (*jenv)->GetStringUTFChars(jenv, jpassword, NULL);
+
+    const struct pam_conv local_conversation = { function_conversation, NULL };  
+    pam_handle_t *local_auth_handle = NULL; // this gets set by pam_start  
+
+    int retval;  
+    retval = pam_start("su", login, &local_conversation, &local_auth_handle);  
+
+    if (retval != PAM_SUCCESS)  
+    {  
+            printf("pam_start returned: %d\n ", retval);  
+            return JNI_FALSE;  
+    }  
+
+    reply = (struct pam_response *)malloc(sizeof(struct pam_response));  
+
+    reply[0].resp = strdup(password);  
+    reply[0].resp_retcode = 0;  
+    retval = pam_authenticate(local_auth_handle, 0);  
+
+    if (retval != PAM_SUCCESS)  
+    {  
+            if (retval == PAM_AUTH_ERR)  
+            {  
+                    printf("Authentication failure.\n");  
+            }  
+            else  
+            {  
+                printf("pam_authenticate returned %d\n", retval);  
+            }  
+            return JNI_FALSE;  
+    }  
+
+    printf("Authenticated.\n");  
+    retval = pam_end(local_auth_handle, retval);  
+
+    if (retval != PAM_SUCCESS)  
+    {  
+            printf("pam_end returned\n");  
+            return JNI_FALSE;  
+    }  
+
+    return JNI_TRUE;  
+  }
 
 /*
  * Class:     com_github_luben_process_Process
