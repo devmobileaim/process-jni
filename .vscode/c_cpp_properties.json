@@ -36,7 +36,8 @@
                 "/usr/include",
                 "/usr/lib/jvm/java-8-openjdk-amd64/include",
                 "${workspaceRoot}",
-                "/usr/lib/jvm/java-8-openjdk-amd64/include/linux"
+                "/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.151-5.b12.el7_4.x86_64/include",
+                "/usr/include/linux"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
@@ -50,7 +51,7 @@
                     "/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed",
                     "/usr/include/x86_64-linux-gnu",
                     "/usr/include",
-                    "/usr/lib/jvm/java-8-openjdk-amd64/include",
+                    "/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.151-5.b12.el7_4.x86_64/include",
                     "${workspaceRoot}"
                 ],
                 "limitSymbolsToIncludedHeaders": true,

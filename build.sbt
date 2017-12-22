@@ -32,7 +32,7 @@ jniCppExtensions := Seq("c")
 
 jniGccFlags ++= Seq(
   "-Wundef", "-Wshadow", "-Wcast-align", "-Wstrict-prototypes",
-  "-Wno-unused-variable", "-lpam"
+  "-Wno-unused-variable", "-lpam", "-shared", "-fPIC"
 ) ++ (System.getProperty("os.arch") match {
   case "amd64"|"x86_64"   => Seq("-msse4")
   case "i386"             => Seq("-msse4")

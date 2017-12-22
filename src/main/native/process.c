@@ -182,7 +182,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_github_luben_process_Process_getgrouplis
   (JNIEnv *jenv, jclass klass, jstring juser) {
 
     const char *user  = (*jenv)->GetStringUTFChars(jenv, juser, NULL);
-    int ngroups = 20;
+    int ngroups = 200;
     int i;
     gid_t *groups = malloc(ngroups * sizeof(gid_t));
     struct group  *gr;
@@ -203,7 +203,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_github_luben_process_Process_getgrouplis
         groups = malloc(ngroups * sizeof(gid_t));
         if (getgrouplist(user, pw->pw_gid, groups, &ngroups) == -1) {
             free(groups);
-            throw(jenv, "java/lang/RuntimeException", "getpwnam");
+            throw(jenv, "java/lang/RuntimeException", "getgrouplist");
             return NULL;
         }
     }

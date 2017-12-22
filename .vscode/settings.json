@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "jni.h": "c"
-    }
+        "jni.h": "c",
+        "stddef.h": "c"
+    },
+    "C_Cpp.intelliSenseEngineFallback": "Enabled"
 }
