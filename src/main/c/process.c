@@ -26,7 +26,7 @@ static void outOfMemory(JNIEnv *env) {
 
 static char *const *fetchArgv(JNIEnv *jenv, jobjectArray jargv) {
     jsize argc = (*jenv)->GetArrayLength(jenv, jargv);
-    const char **argv = (const char**)calloc(sizeof(char*), argc+1);
+    const char **argv = (const char**)calloc(sizeof(char*), (size_t)argc+1);
     if(!argv) {
         outOfMemory(jenv);
         return NULL;
@@ -184,7 +184,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_github_luben_process_Process_getgrouplis
     const char *user  = (*jenv)->GetStringUTFChars(jenv, juser, NULL);
     int ngroups = 200;
     int i;
-    gid_t *groups = malloc(ngroups * sizeof(gid_t));
+    gid_t *groups = malloc((size_t)ngroups * sizeof(gid_t));
     struct group  *gr;
     struct passwd *pw;
 
@@ -200,7 +200,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_github_luben_process_Process_getgrouplis
 
     if (getgrouplist(user, pw->pw_gid, groups, &ngroups) == -1) {
         free(groups);
-        groups = malloc(ngroups * sizeof(gid_t));
+        groups = malloc((size_t)ngroups * sizeof(gid_t));
         if (getgrouplist(user, pw->pw_gid, groups, &ngroups) == -1) {
             free(groups);
             throw(jenv, "java/lang/RuntimeException", "getgrouplist");
