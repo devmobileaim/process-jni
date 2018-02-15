@@ -86,7 +86,6 @@ public class SyzJNDIRealm extends RealmBase {
         return NAME;
     }
 
-    Map<String, Principal> principals = new HashMap<>();
     Map<String, String> passwords = new HashMap<>();
 
     @Override
@@ -101,7 +100,6 @@ public class SyzJNDIRealm extends RealmBase {
                 mapRoles(roles);
                 this.passwords.put(username, credentials);
                 principal = new GenericPrincipal(username, credentials, roles);
-                principals.put(username, principal);
             } else {
                 log.error("Bad credentials");
             }
@@ -123,7 +121,11 @@ public class SyzJNDIRealm extends RealmBase {
 	@Override
 	protected Principal getPrincipal(String username) {
         log.info("GetPrincipal "+username);
-		return principals.get(username);
+        log.info("User Authenticated "+username);
+        List<String> roles = new ArrayList<String>(Arrays.asList(Process.getgrouplist(username)));
+        log.info("User has "+roles.size()+ " roles");
+        mapRoles(roles);
+        return new GenericPrincipal(username, null, roles);
 	}
 
 }
