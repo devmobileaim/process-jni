@@ -9,6 +9,7 @@
 #include <grp.h>
 #include <pwd.h>
 #include <jni.h>
+#include <errno.h>
 #include <security/pam_appl.h>
 #include <security/pam_misc.h>
 
@@ -101,7 +102,7 @@ JNIEXPORT jboolean JNICALL Java_com_github_luben_process_Process_login
     pam_handle_t *local_auth_handle = NULL; // this gets set by pam_start  
 
     int retval;  
-    retval = pam_start("su", login, &local_conversation, &local_auth_handle);  
+    retval = pam_start("system-auth", login, &local_conversation, &local_auth_handle);  
 
     if (retval != PAM_SUCCESS)  
     {  
@@ -119,11 +120,11 @@ JNIEXPORT jboolean JNICALL Java_com_github_luben_process_Process_login
     {  
             if (retval == PAM_AUTH_ERR)  
             {  
-                    printf("Authentication failure.\n");  
+                    fprintf(stderr, "Failed authenticate: %s (%d)\n", pam_strerror(local_auth_handle, errno), errno);
             }  
             else  
             {  
-                printf("pam_authenticate returned %d\n", retval);  
+                printf("pam_authenticate returned %s (%d)\n", pam_strerror(local_auth_handle, errno), retval);  
             }  
             return JNI_FALSE;  
     }  

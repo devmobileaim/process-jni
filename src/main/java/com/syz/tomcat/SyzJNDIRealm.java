@@ -4,7 +4,9 @@ import java.security.Principal;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,13 +37,13 @@ public class SyzJNDIRealm extends RealmBase {
         while (m.find()) {
             RoleMapping roleMapping = new RoleMapping();
             if (!m.group(1).equals("adGroup")) {
-                System.err.println("Wrong mapping format");
+                log.error("Wrong mapping format");
                 return;
             }
             roleMapping.setAdGroup(m.group(2));
-            System.out.print("Add mapping adGroup=" + m.group(2));
+            log.info("Add mapping adGroup=" + m.group(2));
             if (!m.find() || !m.group(1).equals("roles")) {
-                System.err.println("Wrong mapping format");
+                log.error("Wrong mapping format");
                 return;
             }
             for (String role : m.group(2).split(",")) {
@@ -50,7 +52,7 @@ public class SyzJNDIRealm extends RealmBase {
                 roleMapping.addRole(roleObj);
             }
             addRoleMapping(roleMapping);
-            System.out.println(" roles= " + m.group(2));
+            log.info(" roles= " + m.group(2));
         }
         this.mapping = mapping;
     }
@@ -60,15 +62,15 @@ public class SyzJNDIRealm extends RealmBase {
     }
 
     protected void mapRoles(List<String> roles) {
-        System.out.println(roles.size() + " roles retrieved");
+        log.info(roles.size() + " roles retrieved");
         List<String> newRoles = new ArrayList<>();
         for (String role : roles) {
-            System.out.println("Roles = " + role);
+            log.info("Roles = " + role);
             for (RoleMapping mapping : mappings) {
                 if (role.equalsIgnoreCase(mapping.adGroup)) {
                     for (Role newRole : mapping.getRoles()) {
                         newRoles.add(newRole.getName());
-                        System.out.println("Add new role " + newRole.getName());
+                        log.info("Add new role " + newRole.getName());
                     }
                 }
             }
@@ -84,41 +86,28 @@ public class SyzJNDIRealm extends RealmBase {
         return NAME;
     }
 
-    @Override
-    protected Principal getPrincipal(X509Certificate usercert) {
-        log.info("getPrincipal X509");
-        log.info("UserName : " + usercert.getSubjectDN().getName());
-
-        String dn = usercert.getSubjectX500Principal().getName("RFC1779");
-        String[] split = dn.split(",");
-        String name = "";
-        for (String x : split) {
-            if (x.contains("CN=")) {
-                name = x.replace("CN=", "").trim();
-            }
-        }
-        List<String> roles = Arrays.asList(Process.getgrouplist(name));
-        mapRoles(roles);
-
-        Principal principal = new GenericPrincipal(name, null, roles);
-
-        return principal;
-    }
+    Map<String, Principal> principals = new HashMap<>();
+    Map<String, String> passwords = new HashMap<>();
 
     @Override
     public Principal authenticate(String username, String credentials) {
         Principal principal = null;
         try {
-            System.out.println("Authenticate user "+username);
+            log.info("Authenticate user "+username);
             if  (Process.login(username, credentials)) {
-                System.out.println("User Authenticated "+username);
-                List<String> roles = Arrays.asList(Process.getgrouplist(username));
-                System.out.println("User has "+roles.size()+ " roles");
+                log.info("User Authenticated "+username);
+                List<String> roles = new ArrayList<String>(Arrays.asList(Process.getgrouplist(username)));
+                log.info("User has "+roles.size()+ " roles");
                 mapRoles(roles);
-                principal = new GenericPrincipal(username, null, roles);
+                this.passwords.put(username, credentials);
+                principal = new GenericPrincipal(username, credentials, roles);
+                principals.put(username, principal);
+            } else {
+                log.error("Bad credentials");
             }
         } catch (Throwable t) {
             // handle errors
+            log.error("Failed to authenticate", t);
             principal = null;
         }
 
@@ -127,12 +116,14 @@ public class SyzJNDIRealm extends RealmBase {
 
 	@Override
 	protected String getPassword(String username) {
-		return null;
+        log.info("GetPassword "+username);
+		return this.passwords.get(username);
 	}
 
 	@Override
 	protected Principal getPrincipal(String username) {
-		return null;
+        log.info("GetPrincipal "+username);
+		return principals.get(username);
 	}
 
 }
