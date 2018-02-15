@@ -1,4 +1,4 @@
-import com.github.luben.process.Process;
+package com.github.luben.process;
 
 public class Test
 { 

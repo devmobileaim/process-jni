@@ -3,5 +3,6 @@
         "jni.h": "c",
         "stddef.h": "c"
     },
-    "C_Cpp.intelliSenseEngineFallback": "Enabled"
+    "C_Cpp.intelliSenseEngineFallback": "Enabled",
+    "java.configuration.updateBuildConfiguration": "automatic"
 }

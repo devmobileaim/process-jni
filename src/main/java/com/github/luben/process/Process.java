@@ -1,11 +1,10 @@
 package com.github.luben.process;
 
-import com.github.luben.process.util.Native;
-
 public class Process {
 
     static {
-        Native.load();
+        System.out.println(System.getProperties());
+        System.loadLibrary("process");
     }
     /**
      * Fork new process.
